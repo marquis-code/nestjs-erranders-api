@@ -25,6 +25,8 @@ import { NotificationModule } from "./notification/notification.module";
 import { WalletModule } from "./wallet/wallet.module";
 import { TransactionModule } from "./transaction/transaction.module";
 
+import { ChatModule } from './chat/chat.module';
+
 import { CacheConfigModule } from "./cache/cache.module";
 
 @Module({
@@ -67,6 +69,7 @@ import { CacheConfigModule } from "./cache/cache.module";
     NotificationModule,
     WalletModule,
     TransactionModule,
+    ChatModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

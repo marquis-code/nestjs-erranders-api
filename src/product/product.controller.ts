@@ -60,7 +60,7 @@ export class ProductController {
       const response = await this.productService.createProduct(productDto, req.user, file);
       console.log('Product created successfully:', response);
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating product:', error.message);
       throw new BadRequestException('Unable to create product. Please check your input.');
     }
