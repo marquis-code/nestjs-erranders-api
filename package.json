@@ -2,7 +2,7 @@
 	"name": "nest-ecommerce-api",
 	"version": "0.0.1",
 	"description": "A backend REST API built with NestJS for an ecommerce website",
-	"author": "Dipshan Adhikari",
+	"author": "Marquis",
 	"private": true,
 	"license": "GPL-3.0",
 	"scripts": {
