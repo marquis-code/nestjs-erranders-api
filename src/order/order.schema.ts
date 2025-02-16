@@ -22,6 +22,46 @@ class OrderItem {
 export const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
 
 @Schema()
+class PaymentDetails {
+  @Prop({ required: true })
+  transactionId: string;
+
+  @Prop({ required: true, enum: ["card", "wallet", "bank_transfer"] })
+  paymentMethod: string;
+
+  @Prop({ default: Date.now })
+  paymentDate: Date;
+}
+
+export const PaymentDetailsSchema = SchemaFactory.createForClass(PaymentDetails);
+
+@Schema()
+class WalletDistribution {
+  @Prop({ required: true })
+  erranderWallet: number;
+
+  @Prop({ required: true })
+  vendorWallet: number;
+
+  @Prop({ required: true })
+  businessWallet: number;
+}
+
+export const WalletDistributionSchema = SchemaFactory.createForClass(WalletDistribution);
+
+@Schema()
+class VendorPayment {
+  @Prop({ required: true })
+  vendorId: string;
+
+  @Prop({ required: true })
+  amount: number; // The total amount this vendor receives
+}
+
+export const VendorPaymentSchema = SchemaFactory.createForClass(VendorPayment);
+
+
+@Schema()
 export class Order {
   @Prop([{ type: OrderItemSchema }])
   items: OrderItem[];
@@ -37,6 +77,18 @@ export class Order {
   @Prop({ required: true, enum: ['pending', 'accepted', 'delivered'], default: 'pending' })
   status: string;
 
+  @Prop({ required: true, enum: ["pending", "paid", "failed"], default: "pending" })
+  paymentStatus: string;
+
+  @Prop({ type: PaymentDetailsSchema, required: false })
+  paymentDetails?: PaymentDetails;
+
+  @Prop([{ type: VendorPaymentSchema, required: false }])
+  vendorPayments?: VendorPayment[];
+
+  @Prop({ type: WalletDistributionSchema, required: false })
+  walletDistribution?: WalletDistribution;
+
   @Prop({ required: true })
   totalPrice: number;
 
@@ -49,8 +101,10 @@ export class Order {
   @Prop({ required: false })
   orderNotes: number;
 
+
   @Prop({ required: false })
-  paymentType: number;
+  paymentType: string;
+
 
   @Prop({ required: false, default: false})
   isNewUser: boolean;

@@ -13,6 +13,7 @@ import { NotificationService } from "../notification/notification.service";
 import { User, UserDocument } from "../user/user.schema";
 import { OrderGateway } from "../order/order.gateway";
 import { CacheService } from '../cache/cache.service';
+import { WalletService } from "../wallet/wallet.service";
 import { Subject } from 'rxjs';
 
 @Injectable()
@@ -20,13 +21,23 @@ export class OrderService {
   private orderCreated = new Subject<Order>();
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
-    @InjectModel(Product.name)
-    private readonly productModel: Model<ProductDocument>,
-    @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>,
+    @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly notificationService: NotificationService,
     private orderGateway: OrderGateway,
-    private readonly cacheService: CacheService 
+    private readonly walletService: WalletService,
+    private readonly cacheService: CacheService
+    // @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    // @InjectModel(Product.name)
+    // @InjectModel(User.name)
+    // @InjectModel(Order.name) private readonly orderModel: Model<OrderDocument>,
+    // @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
+    // @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    // private readonly productModel: Model<ProductDocument>,
+    // private readonly userModel: Model<UserDocument>,
+    // private readonly notificationService: NotificationService,
+    // private orderGateway: OrderGateway,
+    // private readonly cacheService: CacheService 
   ) {}
 
   emitOrder(order: Order) {
@@ -121,7 +132,7 @@ export class OrderService {
         await this.notificationService.sendNotification(
           errander._id,
           "New Order Available",
-          notificationMessage,
+          `A new order has been placed nearby.`,
           { orderId: order._id, orderDetails: order }
         );
       }
@@ -135,6 +146,7 @@ export class OrderService {
       // Update the order with the erranderId
      // Convert erranderId to ObjectId and update the order
     order.erranderId = new Types.ObjectId(erranderId);
+    order.status = 'accepted';
     await order.save();
 
     // Notify the user who made the order
@@ -148,6 +160,106 @@ export class OrderService {
       );
     }
   }
+
+  async markOrderAsDelivered(orderId: string): Promise<void> {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new NotFoundException("Order not found");
+
+    order.status = 'delivered';
+    await order.save();
+
+    // Trigger wallet distribution after delivery
+    await this.handleWalletDistribution(order);
+  }
+
+  // async handleWalletDistribution(order: Order) {
+  //   const { totalPrice } = order;
+  //   const erranderShare = totalPrice * 0.3;
+  //   const vendorShare = totalPrice * 0.6;
+  //   const businessShare = totalPrice * 0.1;
+
+  //   await this.walletService.updateWallets(
+  //     order.erranderId,
+  //     erranderShare,
+  //     order.items.map(item => item.vendorId),
+  //     vendorShare,
+  //     businessShare
+  //   );
+  // }
+
+//   async handleWalletDistribution(order: Order) {
+//     const { totalPrice } = order;
+//     const erranderShare = totalPrice * 0.3;
+//     const vendorShare = totalPrice * 0.6;
+//     const businessShare = totalPrice * 0.1;
+
+//     // Create vendorShares array with the correct structure
+//     const vendorShares = order.items.map(item => ({
+//         vendorId: item.vendorId,
+//         amount: (vendorShare / order.items.length) // Distributing vendor share equally among vendors
+//     }));
+
+//     await this.walletService.updateWallets(
+//        order.erranderId?.toString(), // Convert ObjectId to string
+//         erranderShare,
+//         vendorShares,
+//         businessShare
+//     );
+// }
+
+// async handleWalletDistribution(order: Order) {
+//   if (!order) {
+//     throw new NotFoundException('Order not found');
+//   }
+  
+//   const { totalPrice } = order;
+//   const erranderShare = totalPrice * 0.3;
+//   const businessShare = totalPrice * 0.1;
+
+//   const vendorShares = order.items.map(item => ({
+//     vendorId: item.vendorId.toString(),
+//     amount: item.price * 0.6, // Each vendor receives 60% of their respective item's price
+//   }));
+
+//   await this.walletService.updateWallets(
+//     order.erranderId?.toString(),
+//     erranderShare,
+//     vendorShares,
+//     businessShare
+//   );
+
+//   // await this.updateWallets(
+//   //   order.erranderId?.toString(),
+//   //   erranderShare,
+//   //   vendorShares,
+//   //   businessShare
+//   // );
+// }
+
+async handleWalletDistribution(order: Order) {
+  if (!order) {
+    throw new NotFoundException('Order not found');
+  }
+  
+  const { totalPrice } = order;
+  const erranderShare = totalPrice * 0.3;
+  const businessShare = totalPrice * 0.1;
+
+  const vendorShares = order.items.map(item => ({
+    vendorId: item.vendorId.toString(),
+    amount: item.price * 0.6, // Each vendor receives 60% of their respective item's price
+  }));
+
+  // ✅ Ensure we call the method from WalletService
+  await this.walletService.updateWallets(
+    order.erranderId?.toString(),
+    erranderShare,
+    vendorShares,
+    businessShare
+  );
+}
+
+
 
   async getOrders() {
     try {

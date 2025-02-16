@@ -1,4 +1,4 @@
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
 import { ProductModule } from "./product/product.module";
@@ -7,7 +7,9 @@ import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.int
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, { cors: true, logger: ['error', 'debug'] });
+
+  const logger = new Logger('Bootstrap');
 
   app.setGlobalPrefix("/api/v1").useGlobalPipes(new ValidationPipe()
   );
@@ -34,6 +36,10 @@ async function bootstrap() {
 
   const PORT = process.env.PORT || 4000;
   await app.listen(PORT);
+
+  const logMessage = `Application is running on: http://localhost:${PORT}`;
+  logger.log(logMessage);
+  console.log(logMessage); // Output logged message to console
 }
 
 bootstrap();

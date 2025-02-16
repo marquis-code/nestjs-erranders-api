@@ -36,16 +36,49 @@ export declare const OrderItemSchema: import("mongoose").Schema<OrderItem, impor
 }, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, OrderItem, Document<unknown, {}, import("mongoose").FlatRecord<OrderItem>> & import("mongoose").FlatRecord<OrderItem> & {
     _id: Types.ObjectId;
 }>;
+declare class PaymentDetails {
+    transactionId: string;
+    paymentMethod: string;
+    paymentDate: Date;
+}
+export declare const PaymentDetailsSchema: import("mongoose").Schema<PaymentDetails, import("mongoose").Model<PaymentDetails, any, any, any, Document<unknown, any, PaymentDetails> & PaymentDetails & {
+    _id: Types.ObjectId;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, PaymentDetails, Document<unknown, {}, import("mongoose").FlatRecord<PaymentDetails>> & import("mongoose").FlatRecord<PaymentDetails> & {
+    _id: Types.ObjectId;
+}>;
+declare class WalletDistribution {
+    erranderWallet: number;
+    vendorWallet: number;
+    businessWallet: number;
+}
+export declare const WalletDistributionSchema: import("mongoose").Schema<WalletDistribution, import("mongoose").Model<WalletDistribution, any, any, any, Document<unknown, any, WalletDistribution> & WalletDistribution & {
+    _id: Types.ObjectId;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, WalletDistribution, Document<unknown, {}, import("mongoose").FlatRecord<WalletDistribution>> & import("mongoose").FlatRecord<WalletDistribution> & {
+    _id: Types.ObjectId;
+}>;
+declare class VendorPayment {
+    vendorId: string;
+    amount: number;
+}
+export declare const VendorPaymentSchema: import("mongoose").Schema<VendorPayment, import("mongoose").Model<VendorPayment, any, any, any, Document<unknown, any, VendorPayment> & VendorPayment & {
+    _id: Types.ObjectId;
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, VendorPayment, Document<unknown, {}, import("mongoose").FlatRecord<VendorPayment>> & import("mongoose").FlatRecord<VendorPayment> & {
+    _id: Types.ObjectId;
+}>;
 export declare class Order {
     items: OrderItem[];
     user: Types.ObjectId;
     erranderId?: Types.ObjectId;
     status: string;
+    paymentStatus: string;
+    paymentDetails?: PaymentDetails;
+    vendorPayments?: VendorPayment[];
+    walletDistribution?: WalletDistribution;
     totalPrice: number;
     address: number;
     phone: number;
     orderNotes: number;
-    paymentType: number;
+    paymentType: string;
     isNewUser: boolean;
     isSubscription: boolean;
     startDate: Date;

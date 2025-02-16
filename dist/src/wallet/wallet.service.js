@@ -25,27 +25,70 @@ let WalletService = class WalletService {
         this.connection = connection;
     }
     async createWallet(userId) {
-        const newWallet = new this.walletModel({ userId, balance: 0 });
+        const newWallet = new this.walletModel({ userId, balance: 0, transactions: [] });
         const savedWallet = await newWallet.save();
         return savedWallet._id;
     }
-    async creditWallet(userId, amount) {
-        await this.walletModel.updateOne({ userId }, { $inc: { balance: amount } });
+    async creditWallet(userId, amount, transaction) {
+        const updateQuery = { $inc: { balance: amount } };
+        if (transaction) {
+            updateQuery.$push = { transactions: transaction };
+        }
+        await this.walletModel.updateOne({ userId }, updateQuery);
+    }
+    async getWalletProfile(userId) {
+        return this.walletModel.findOne({ userId }).exec();
+    }
+    async updateWallets(erranderId, erranderShare, vendorShares, businessShare) {
+        const session = await this.connection.startSession();
+        session.startTransaction();
+        try {
+            if (erranderId) {
+                await this.creditWallet(erranderId.toString(), erranderShare, {
+                    type: 'earnings',
+                    amount: erranderShare,
+                    description: 'Earnings from order delivery',
+                    date: new Date()
+                });
+            }
+            for (const { vendorId, amount } of vendorShares) {
+                await this.creditWallet(vendorId.toString(), amount, {
+                    type: 'earnings',
+                    amount: amount,
+                    description: 'Earnings from sold products',
+                    date: new Date()
+                });
+            }
+            await this.creditWallet('business_wallet', businessShare, {
+                type: 'commission',
+                amount: businessShare,
+                description: 'Business commission from order',
+                date: new Date()
+            });
+            await session.commitTransaction();
+        }
+        catch (error) {
+            await session.abortTransaction();
+            throw error;
+        }
+        finally {
+            session.endSession();
+        }
     }
     async handleOrderCompletion(orderId) {
+        var _a;
         const session = await this.connection.startSession();
         session.startTransaction();
         try {
             const order = await this.orderModel.findById(orderId).exec();
             if (order && order.status === 'delivered') {
-                const erranderShare = order.erranderId ? order.totalPrice * 0.05 : 0;
-                if (erranderShare > 0) {
-                    await this.walletModel.updateOne({ userId: order.erranderId }, { $inc: { balance: erranderShare } }, { session });
-                }
-                for (const item of order.items) {
-                    const vendorShare = item.price * 0.95;
-                    await this.walletModel.updateOne({ userId: item.vendorId }, { $inc: { balance: vendorShare } }, { session });
-                }
+                const erranderShare = order.erranderId ? order.totalPrice * 0.2 : 0;
+                const businessShare = order.totalPrice * 0.1;
+                const vendorShares = order.items.map(item => ({
+                    vendorId: item.vendorId.toString(),
+                    amount: item.price * 0.7,
+                }));
+                await this.updateWallets((_a = order.erranderId) === null || _a === void 0 ? void 0 : _a.toString(), erranderShare, vendorShares, businessShare);
             }
             await session.commitTransaction();
         }
@@ -68,7 +111,7 @@ let WalletService = class WalletService {
         return this.orderModel.find({ 'items.vendorId': vendorId, status: 'delivered' }).exec();
     }
     async getOrdersForErrander(erranderId) {
-        return this.orderModel.find({ erranderId }).exec();
+        return this.orderModel.find({ erranderId }).populate('items.product user').exec();
     }
 };
 exports.WalletService = WalletService;

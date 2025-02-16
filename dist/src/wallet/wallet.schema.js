@@ -11,19 +11,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletSchema = exports.Wallet = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-const user_schema_1 = require("../user/user.schema");
 const mongoose_2 = require("mongoose");
 let Wallet = class Wallet {
 };
 exports.Wallet = Wallet;
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "User", required: true }),
-    __metadata("design:type", user_schema_1.User)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: "User", required: true, unique: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Wallet.prototype, "userId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 0 }),
     __metadata("design:type", Number)
 ], Wallet.prototype, "balance", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Wallet.prototype, "erranderEarnings", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Wallet.prototype, "vendorEarnings", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Wallet.prototype, "businessEarnings", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [{ amount: Number, type: String, date: Date }], default: [] }),
+    __metadata("design:type", Array)
+], Wallet.prototype, "transactions", void 0);
 exports.Wallet = Wallet = __decorate([
     (0, mongoose_1.Schema)()
 ], Wallet);

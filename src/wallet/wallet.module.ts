@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Wallet, WalletSchema } from './wallet.schema';
 import { Order, OrderSchema } from '../order/order.schema';
 import { WalletService } from './wallet.service';
+import { WalletController } from './wallet.controller';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { WalletService } from './wallet.service';
       { name: Order.name, schema: OrderSchema },
     ]),
   ],
+  controllers: [WalletController], // Add the controller here
   providers: [WalletService],
   exports: [WalletService],
 })

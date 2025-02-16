@@ -22,14 +22,16 @@ const notification_service_1 = require("../notification/notification.service");
 const user_schema_1 = require("../user/user.schema");
 const order_gateway_1 = require("../order/order.gateway");
 const cache_service_1 = require("../cache/cache.service");
+const wallet_service_1 = require("../wallet/wallet.service");
 const rxjs_1 = require("rxjs");
 let OrderService = class OrderService {
-    constructor(orderModel, productModel, userModel, notificationService, orderGateway, cacheService) {
+    constructor(orderModel, productModel, userModel, notificationService, orderGateway, walletService, cacheService) {
         this.orderModel = orderModel;
         this.productModel = productModel;
         this.userModel = userModel;
         this.notificationService = notificationService;
         this.orderGateway = orderGateway;
+        this.walletService = walletService;
         this.cacheService = cacheService;
         this.orderCreated = new rxjs_1.Subject();
     }
@@ -97,7 +99,7 @@ let OrderService = class OrderService {
         const notificationMessage = `A new order has been placed${erranders.length === 0 ? '' : ' nearby'}.`;
         if (erranders.length) {
             for (const errander of erranders) {
-                await this.notificationService.sendNotification(errander._id, "New Order Available", notificationMessage, { orderId: order._id, orderDetails: order });
+                await this.notificationService.sendNotification(errander._id, "New Order Available", `A new order has been placed nearby.`, { orderId: order._id, orderDetails: order });
             }
         }
     }
@@ -106,11 +108,34 @@ let OrderService = class OrderService {
         if (!order)
             throw new common_1.NotFoundException("Order not found");
         order.erranderId = new mongoose_2.Types.ObjectId(erranderId);
+        order.status = 'accepted';
         await order.save();
         const user = await this.userModel.findById(order.user);
         if (user) {
             await this.notificationService.sendNotification(user._id, "Order Accepted", `Your order has been accepted by an errander.`, { orderId: order._id });
         }
+    }
+    async markOrderAsDelivered(orderId) {
+        const order = await this.orderModel.findById(orderId);
+        if (!order)
+            throw new common_1.NotFoundException("Order not found");
+        order.status = 'delivered';
+        await order.save();
+        await this.handleWalletDistribution(order);
+    }
+    async handleWalletDistribution(order) {
+        var _a;
+        if (!order) {
+            throw new common_1.NotFoundException('Order not found');
+        }
+        const { totalPrice } = order;
+        const erranderShare = totalPrice * 0.3;
+        const businessShare = totalPrice * 0.1;
+        const vendorShares = order.items.map(item => ({
+            vendorId: item.vendorId.toString(),
+            amount: item.price * 0.6,
+        }));
+        await this.walletService.updateWallets((_a = order.erranderId) === null || _a === void 0 ? void 0 : _a.toString(), erranderShare, vendorShares, businessShare);
     }
     async getOrders() {
         try {
@@ -185,6 +210,7 @@ exports.OrderService = OrderService = __decorate([
         mongoose_2.Model,
         notification_service_1.NotificationService,
         order_gateway_1.OrderGateway,
+        wallet_service_1.WalletService,
         cache_service_1.CacheService])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

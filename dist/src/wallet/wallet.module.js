@@ -12,6 +12,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const wallet_schema_1 = require("./wallet.schema");
 const order_schema_1 = require("../order/order.schema");
 const wallet_service_1 = require("./wallet.service");
+const wallet_controller_1 = require("./wallet.controller");
 let WalletModule = class WalletModule {
 };
 exports.WalletModule = WalletModule;
@@ -23,6 +24,7 @@ exports.WalletModule = WalletModule = __decorate([
                 { name: order_schema_1.Order.name, schema: order_schema_1.OrderSchema },
             ]),
         ],
+        controllers: [wallet_controller_1.WalletController],
         providers: [wallet_service_1.WalletService],
         exports: [wallet_service_1.WalletService],
     })

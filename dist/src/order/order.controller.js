@@ -84,7 +84,8 @@ let OrderController = class OrderController {
         return { message: 'Order completed and wallets credited.' };
     }
     async deliverOrder(id) {
-        await this.walletService.markOrderAsDelivered(id);
+        await this.orderService.markOrderAsDelivered(id);
+        await this.walletService.handleOrderCompletion(id);
         return { message: 'Order marked as delivered and wallets credited.' };
     }
     async getTransactionsForVendor(vendorId) {

@@ -22,12 +22,19 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { User } from '../user/user.schema';
 import { Types, Document } from "mongoose";
 export type WalletDocument = Wallet & Document;
 export declare class Wallet {
-    userId: User;
+    userId: Types.ObjectId;
     balance: number;
+    erranderEarnings: number;
+    vendorEarnings: number;
+    businessEarnings: number;
+    transactions: {
+        amount: number;
+        type: string;
+        date: Date;
+    }[];
 }
 export declare const WalletSchema: import("mongoose").Schema<Wallet, import("mongoose").Model<Wallet, any, any, any, Document<unknown, any, Wallet> & Wallet & {
     _id: Types.ObjectId;

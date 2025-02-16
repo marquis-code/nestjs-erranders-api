@@ -30,20 +30,24 @@ import { NotificationService } from "../notification/notification.service";
 import { UserDocument } from "../user/user.schema";
 import { OrderGateway } from "../order/order.gateway";
 import { CacheService } from '../cache/cache.service';
+import { WalletService } from "../wallet/wallet.service";
 export declare class OrderService {
     private readonly orderModel;
     private readonly productModel;
     private readonly userModel;
     private readonly notificationService;
     private orderGateway;
+    private readonly walletService;
     private readonly cacheService;
     private orderCreated;
-    constructor(orderModel: Model<OrderDocument>, productModel: Model<ProductDocument>, userModel: Model<UserDocument>, notificationService: NotificationService, orderGateway: OrderGateway, cacheService: CacheService);
+    constructor(orderModel: Model<OrderDocument>, productModel: Model<ProductDocument>, userModel: Model<UserDocument>, notificationService: NotificationService, orderGateway: OrderGateway, walletService: WalletService, cacheService: CacheService);
     emitOrder(order: Order): void;
     getOrderEvents(): import("rxjs").Observable<Order>;
     createOrder(dto: CreateOrderDto): Promise<Order>;
     notifyNearbyErranders(order: any): Promise<void>;
     acceptOrder(orderId: string, erranderId: string): Promise<void>;
+    markOrderAsDelivered(orderId: string): Promise<void>;
+    handleWalletDistribution(order: Order): Promise<void>;
     getOrders(): Promise<{
         orders: any;
         fromCache: boolean;

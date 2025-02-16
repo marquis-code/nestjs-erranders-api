@@ -31,7 +31,12 @@ export declare class WalletService {
     private readonly connection;
     constructor(walletModel: Model<WalletDocument>, orderModel: Model<OrderDocument>, connection: Connection);
     createWallet(userId: string): Promise<Types.ObjectId>;
-    creditWallet(userId: string, amount: number): Promise<void>;
+    creditWallet(userId: string, amount: number, transaction?: any): Promise<void>;
+    getWalletProfile(userId: string): Promise<WalletDocument | null>;
+    updateWallets(erranderId: string | undefined, erranderShare: number, vendorShares: {
+        vendorId: string;
+        amount: number;
+    }[], businessShare: number): Promise<void>;
     handleOrderCompletion(orderId: string): Promise<void>;
     acceptOrder(orderId: string, erranderId: string): Promise<void>;
     markOrderAsDelivered(orderId: string): Promise<void>;
